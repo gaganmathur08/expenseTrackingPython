@@ -24,7 +24,7 @@ class PolygonInteractor(object):
         self.ax.add_line(self.line)
 
         cid = self.poly.add_callback(self.poly_changed)
-        self._ind = None  # the active vert
+        self._ind = None 
 
         canvas.mpl_connect('draw_event', self.draw_callback)
         canvas.mpl_connect('button_press_event', self.button_press_callback)
@@ -43,15 +43,13 @@ class PolygonInteractor(object):
 
     def poly_changed(self, poly):
         'this method is called whenever the polygon object is called'
-        # only copy the artist props to the line (except visibility)
+      
         vis = self.line.get_visible()
         Artist.update_from(self.line, poly)
-        self.line.set_visible(vis)  # don't use the poly visibility state
+        self.line.set_visible(vis)  
 
     def get_ind_under_point(self, event):
         'get the index of the vertex under point if within epsilon tolerance'
-
-        # display coords
         xy = np.asarray(self.poly.xy)
         xyt = self.poly.get_transform().transform(xy)
         xt, yt = xyt[:, 0], xyt[:, 1]
