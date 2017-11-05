@@ -16,19 +16,9 @@ import argparse
 import os
 
 class DocScanner(object):
-    """An image scanner"""
 
     def __init__(self, interactive=False, MIN_QUAD_AREA_RATIO=0.25, MAX_QUAD_ANGLE_RANGE=40):
-        """
-        Args:
-            interactive (boolean): If True, user can adjust screen contour before
-                transformation occurs in interactive pyplot window.
-            MIN_QUAD_AREA_RATIO (float): A contour will be rejected if its corners 
-                do not form a quadrilateral that covers at least MIN_QUAD_AREA_RATIO 
-                of the original image. Defaults to 0.25.
-            MAX_QUAD_ANGLE_RANGE (int):  A contour will also be rejected if the range 
-                of its interior angles exceeds MAX_QUAD_ANGLE_RANGE. Defaults to 40.
-        """        
+
         self.interactive = interactive
         self.MIN_QUAD_AREA_RATIO = MIN_QUAD_AREA_RATIO
         self.MAX_QUAD_ANGLE_RANGE = MAX_QUAD_ANGLE_RANGE        
@@ -51,10 +41,7 @@ class DocScanner(object):
             math.acos(np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))))
 
     def get_angle(self, p1, p2, p3):
-        """
-        Returns the angle between the line segment from p2 to p1 
-        and the line segment from p2 to p3 in degrees
-        """
+
         a = np.radians(np.array(p1))
         b = np.radians(np.array(p2))
         c = np.radians(np.array(p3))
@@ -65,11 +52,7 @@ class DocScanner(object):
         return self.angle_between_vectors_degrees(avec, cvec)
 
     def angle_range(self, quad):
-        """
-        Returns the range between max and min interior angles of quadrilateral.
-        The input quadrilateral must be a numpy array with vertices ordered clockwise
-        starting with the top left vertex.
-        """
+
         tl, tr, br, bl = quad
         ura = self.get_angle(tl[0], tr[0], br[0])
         ula = self.get_angle(bl[0], tl[0], tr[0])
@@ -164,21 +147,22 @@ class DocScanner(object):
 
 
     def get_contour(self, rescaled_image):
+
         MORPH = 9
         CANNY = 84
         HOUGH = 25
 
         IM_HEIGHT, IM_WIDTH, _ = rescaled_image.shape
 
-        # convert the image to grayscale and blur it slightly
+
         gray = cv2.cvtColor(rescaled_image, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (7,7), 0)
 
-        # dilate helps to remove potential holes between edge segments
+
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(MORPH,MORPH))
         dilated = cv2.dilate(gray, kernel)
 
-        # find edges and mark them in the output map using the Canny algorithm
+
         edged = cv2.Canny(dilated, 0, CANNY)
         test_corners = self.get_corners(edged)
 
@@ -202,6 +186,16 @@ class DocScanner(object):
             if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
                 approx_contours.append(approx)
 
+            # for debugging: uncomment the code below to draw the corners and countour found 
+            # by get_corners() and overlay it on the image
+
+            # cv2.drawContours(rescaled_image, [approx], -1, (20, 20, 255), 2)
+            # plt.scatter(*zip(*test_corners))
+            # plt.imshow(rescaled_image)
+            # plt.show()
+
+        # also attempt to find contours directly from the edged image, which occasionally 
+        # produces better results
         (_, cnts, hierarchy) = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:5]
 
@@ -339,13 +333,32 @@ for i in range(2):
     except ValueError:
         continue
 
-
+'''
 try:
    x2 = lst1.index("Date:")
    res_date = lst1[x2+1]
    print ("Date: ",res_date)
 except ValueError:
    print("Date Not Available!")
+'''
+
+lst_date = ("Date:", "date:", "Date", "date", "DATE:", "DATE")
+is_date_available = False
+
+for item in lst_date:
+    try:
+        x2 = lst1.index(item)
+        res_date = lst1[x2 + 1]
+        print("Date: ", res_date)
+        is_date_available = True
+        break
+    except ValueError:
+        is_date_available = False
+
+
+if not is_date_available:
+    print("Date Not Available!")
+
 
 
 print("Store Name: ",lst[0])
