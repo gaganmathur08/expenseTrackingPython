@@ -164,15 +164,6 @@ class DocScanner(object):
 
 
     def get_contour(self, rescaled_image):
-        """
-        Returns a numpy array of shape (4, 2) containing the vertices of the four corners
-        of the document in the image. It considers the corners returned from get_corners()
-        and uses heuristics to choose the four corners that most likely represent
-        the corners of the document. If no corners were found, or the four corners represent
-        a quadrilateral that is too small or convex, it returns the original four corners.
-        """
-
-        # these constants are carefully chosen
         MORPH = 9
         CANNY = 84
         HOUGH = 25
@@ -211,16 +202,6 @@ class DocScanner(object):
             if self.is_valid_contour(approx, IM_WIDTH, IM_HEIGHT):
                 approx_contours.append(approx)
 
-            # for debugging: uncomment the code below to draw the corners and countour found 
-            # by get_corners() and overlay it on the image
-
-            # cv2.drawContours(rescaled_image, [approx], -1, (20, 20, 255), 2)
-            # plt.scatter(*zip(*test_corners))
-            # plt.imshow(rescaled_image)
-            # plt.show()
-
-        # also attempt to find contours directly from the edged image, which occasionally 
-        # produces better results
         (_, cnts, hierarchy) = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:5]
 
